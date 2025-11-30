@@ -9,9 +9,9 @@ import { ViewState, Client, Transaction, Appointment, ClientStatus } from './typ
 
 // Mock Data
 const INITIAL_CLIENTS: Client[] = [
-  { id: '1', name: 'Juliana Paes', email: 'ju.paes@example.com', phone: '(11) 99999-1234', status: ClientStatus.BOOKED, createdAt: '2023-10-15', notes: 'Prefere contatos via WhatsApp no período da tarde.' },
+  { id: '1', name: 'Juliana Paes', email: 'ju.paes@example.com', phone: '(11) 99999-1234', status: ClientStatus.BOOKED, shootDate: '2023-12-15', createdAt: '2023-10-15', notes: 'Prefere contatos via WhatsApp no período da tarde.' },
   { id: '2', name: 'Carlos Andrade', email: 'carlos.a@example.com', phone: '(21) 98888-5678', status: ClientStatus.LEAD, createdAt: '2023-11-02' },
-  { id: '3', name: 'Mariana Ximenes', email: 'mari.x@example.com', phone: '(11) 97777-4321', status: ClientStatus.COMPLETED, createdAt: '2023-09-10', notes: 'Cliente VIP. Enviou feedback positivo sobre o álbum.' },
+  { id: '3', name: 'Mariana Ximenes', email: 'mari.x@example.com', phone: '(11) 97777-4321', status: ClientStatus.COMPLETED, shootDate: '2023-11-10', createdAt: '2023-09-10', notes: 'Cliente VIP. Enviou feedback positivo sobre o álbum.' },
   { id: '4', name: 'Roberto Firmino', email: 'boby@example.com', phone: '(41) 99999-9999', status: ClientStatus.CONTACTED, createdAt: '2023-11-05' },
 ];
 

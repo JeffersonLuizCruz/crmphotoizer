@@ -12,6 +12,7 @@ export interface Client {
   phone: string;
   status: ClientStatus;
   notes?: string;
+  shootDate?: string; // ISO string YYYY-MM-DD
   createdAt: string;
 }
 

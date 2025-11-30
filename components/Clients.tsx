@@ -33,6 +33,7 @@ export const Clients: React.FC<ClientsProps> = ({ clients, onAddClient, onUpdate
   const [editName, setEditName] = useState('');
   const [editEmail, setEditEmail] = useState('');
   const [editPhone, setEditPhone] = useState('');
+  const [editShootDate, setEditShootDate] = useState('');
   const [notesInput, setNotesInput] = useState('');
 
   const filteredClients = clients.filter(c => {
@@ -41,6 +42,15 @@ export const Clients: React.FC<ClientsProps> = ({ clients, onAddClient, onUpdate
     const matchesStatus = filterStatus === 'ALL' || c.status === filterStatus;
     return matchesSearch && matchesStatus;
   });
+
+  // Helper to format YYYY-MM-DD date strings without timezone shifts (UTC to Local conversion issues)
+  const formatShootDate = (dateString: string) => {
+    if (!dateString) return '';
+    const parts = dateString.split('-');
+    // Create date using local time constructor: new Date(year, monthIndex, day)
+    const date = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+    return date.toLocaleDateString('pt-BR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+  };
 
   const handleSaveNew = () => {
     if(!newName) return;
@@ -64,6 +74,7 @@ export const Clients: React.FC<ClientsProps> = ({ clients, onAddClient, onUpdate
     setEditName(client.name);
     setEditEmail(client.email);
     setEditPhone(client.phone);
+    setEditShootDate(client.shootDate || '');
     setIsEditing(false);
   };
 
@@ -82,6 +93,7 @@ export const Clients: React.FC<ClientsProps> = ({ clients, onAddClient, onUpdate
       name: editName,
       email: editEmail,
       phone: editPhone,
+      shootDate: editShootDate, // This is a string 'YYYY-MM-DD' from the input type="date"
       notes: notesInput // Save notes too if in global edit mode
     };
     onUpdateClient(updatedClient);
@@ -100,10 +112,17 @@ export const Clients: React.FC<ClientsProps> = ({ clients, onAddClient, onUpdate
   const handleOpenSchedule = () => {
     if (!selectedClient) return;
     setApptTitle(`Ensaio com ${selectedClient.name}`);
-    // Default to tomorrow 10am
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    setApptDate(tomorrow.toISOString().split('T')[0]);
+    
+    // Check if client already has a shoot date set
+    if (selectedClient.shootDate) {
+      setApptDate(selectedClient.shootDate);
+    } else {
+      // Default to tomorrow
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      setApptDate(tomorrow.toISOString().split('T')[0]);
+    }
+
     setApptTime('10:00');
     setShowScheduleModal(true);
   };
@@ -125,15 +144,24 @@ export const Clients: React.FC<ClientsProps> = ({ clients, onAddClient, onUpdate
 
     onAddAppointment(newAppt);
     
-    // Auto-update status to Booked if it was Lead or Contacted
-    if (selectedClient.status === ClientStatus.LEAD || selectedClient.status === ClientStatus.CONTACTED) {
-      const updatedClient = { ...selectedClient, status: ClientStatus.BOOKED };
-      onUpdateClient(updatedClient);
-      setSelectedClient(updatedClient);
+    // Update client status AND sync shootDate
+    let newStatus = selectedClient.status;
+    if (newStatus === ClientStatus.LEAD || newStatus === ClientStatus.CONTACTED) {
+      newStatus = ClientStatus.BOOKED;
     }
 
+    const updatedClient = { 
+      ...selectedClient, 
+      status: newStatus,
+      shootDate: apptDate 
+    };
+    
+    onUpdateClient(updatedClient);
+    setSelectedClient(updatedClient);
+    setEditShootDate(apptDate); // Sync with edit form state
+
     setShowScheduleModal(false);
-    alert('Agendamento criado com sucesso!');
+    alert('Agendamento criado e data do cliente atualizada!');
   };
 
   const handleSendEmail = () => {
@@ -490,6 +518,23 @@ export const Clients: React.FC<ClientsProps> = ({ clients, onAddClient, onUpdate
                       />
                     ) : (
                       <p className="text-white">{selectedClient.phone}</p>
+                    )}
+                  </div>
+                  <div className={`p-4 rounded-xl border col-span-2 transition-colors ${isEditing ? 'bg-slate-900 border-indigo-500/50' : 'bg-slate-900/50 border-slate-700/50'}`}>
+                    <p className="text-xs text-slate-500 uppercase font-bold mb-1 flex items-center gap-1">
+                      <Calendar className="w-3 h-3" /> Data do Ensaio
+                    </p>
+                    {isEditing ? (
+                      <input 
+                        type="date" 
+                        value={editShootDate}
+                        onChange={(e) => setEditShootDate(e.target.value)}
+                        className="w-full bg-slate-800 border border-slate-700 rounded px-2 py-1 text-white focus:border-indigo-500 focus:outline-none [color-scheme:dark]"
+                      />
+                    ) : (
+                      <p className={selectedClient.shootDate ? "text-white" : "text-slate-500 italic"}>
+                        {selectedClient.shootDate ? formatShootDate(selectedClient.shootDate) : 'Data não definida'}
+                      </p>
                     )}
                   </div>
                 </div>
